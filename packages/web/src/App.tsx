@@ -62,20 +62,44 @@ export default function App() {
             gap: '36px',
           }}
         >
-          {/* Title */}
-          <h1
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '1.3rem',
-              fontWeight: 600,
-              color: activeTheme.colors.text,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              opacity: 0.7,
-            }}
-          >
-            Pomodoro
-          </h1>
+          {/* Title + Signature */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+            <h1
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '2.4rem',
+                fontWeight: 700,
+                color: activeTheme.colors.text,
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                opacity: 0.85,
+              }}
+            >
+              Pomodoro
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.85rem',
+                  fontWeight: 400,
+                  color: activeTheme.colors.text,
+                  opacity: 0.5,
+                }}
+              >
+                by
+              </span>
+              <img
+                src="/signature.png"
+                alt="signature"
+                style={{
+                  height: '22px',
+                  opacity: 0.55,
+                  filter: `brightness(0) saturate(100%)`,
+                }}
+              />
+            </div>
+          </div>
 
           {/* Theme selector */}
           <ThemeBar
