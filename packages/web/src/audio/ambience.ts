@@ -285,6 +285,61 @@ function startSky(ctx: AudioContext) {
   });
 }
 
+// ─── Countdown beep (last 10 seconds) ───
+
+let countdownScheduled = false;
+let countdownTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+function cleanupCountdown() {
+  countdownTimeouts.forEach(clearTimeout);
+  countdownTimeouts = [];
+  countdownScheduled = false;
+}
+
+/** Play a single countdown beep. Higher pitch and longer for the final beep (0 seconds left). */
+function playBeep(isFinal: boolean) {
+  const ctx = getContext();
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'sine';
+
+  if (isFinal) {
+    // Final beep: higher pitch, longer, two-tone
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.setValueAtTime(1100, now + 0.12);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.35, now + 0.02);
+    gain.gain.setValueAtTime(0.35, now + 0.2);
+    gain.gain.linearRampToValueAtTime(0, now + 0.5);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.55);
+  } else {
+    // Regular countdown beep: short tick
+    osc.frequency.value = 660;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+    gain.gain.linearRampToValueAtTime(0, now + 0.15);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+}
+
+/**
+ * Called every second by the timer. When secondsRemaining <= 10,
+ * plays countdown beeps. The beep at 0 is the "final" beep.
+ */
+export function tickCountdown(secondsRemaining: number) {
+  if (secondsRemaining <= 10 && secondsRemaining >= 0) {
+    playBeep(secondsRemaining === 0);
+  }
+}
+
 // ─── Public API ───
 
 const starters: Record<ThemeId, (ctx: AudioContext) => void> = {
@@ -306,6 +361,7 @@ export function stopAmbience() {
   isPlaying = false;
   currentTheme = null;
   cleanup();
+  cleanupCountdown();
 }
 
 export function isAmbiencePlaying(): boolean {

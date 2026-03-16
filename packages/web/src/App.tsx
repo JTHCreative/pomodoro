@@ -1,13 +1,13 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTimer, oceanTheme, forestTheme, skyTheme, Theme } from '@pomodoro/shared';
+import { useTimer, oceanTheme, forestTheme, skyTheme, Theme, BreakSettings, TimerPhase } from '@pomodoro/shared';
 import Timer from './components/Timer';
 import ThemeBar from './components/ThemeBar';
 import Controls from './components/Controls';
 import OceanScene from './components/animations/OceanScene';
 import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
-import { playAmbience, stopAmbience } from './audio/ambience';
+import { playAmbience, stopAmbience, tickCountdown } from './audio/ambience';
 import { GearIcon, SunIcon, MoonIcon, VolumeOnIcon, VolumeOffIcon } from './components/Icons';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
@@ -23,7 +23,17 @@ export default function App() {
   const [audioOn, setAudioOn] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const timer = useTimer();
+  const [breakSettings, setBreakSettings] = useState<BreakSettings>({
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+  });
+
+  const handlePhaseComplete = useCallback((phase: TimerPhase) => {
+    // Final beep is already played by tickCountdown at 0
+  }, []);
+
+  const timer = useTimer(breakSettings, handlePhaseComplete);
+  const prevSecondsRef = useRef(timer.secondsRemaining);
 
   const activeTheme = themes.find((t) => t.id === activeThemeId)!;
   const colors = isDark ? activeTheme.darkColors : activeTheme.colors;
@@ -32,6 +42,25 @@ export default function App() {
   const handleSelectTheme = useCallback((id: Theme['id']) => {
     setActiveThemeId(id);
   }, []);
+
+  // Play countdown beeps when timer is running and in last 10 seconds
+  useEffect(() => {
+    if (timer.isRunning && timer.secondsRemaining !== prevSecondsRef.current) {
+      tickCountdown(timer.secondsRemaining);
+    }
+    prevSecondsRef.current = timer.secondsRemaining;
+  }, [timer.secondsRemaining, timer.isRunning]);
+
+  // Auto-start break timers after pomodoro completes
+  useEffect(() => {
+    if (!timer.isRunning && timer.secondsRemaining > 0 && timer.phase !== 'pomodoro') {
+      // If we just transitioned to a break phase, auto-start after a brief delay
+      const timeout = setTimeout(() => {
+        timer.start();
+      }, 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [timer.phase]);
 
   // Play/stop ambient audio when theme or toggle changes
   useEffect(() => {
@@ -109,7 +138,7 @@ export default function App() {
                   backdropFilter: 'blur(12px)',
                   borderRadius: '14px',
                   padding: '16px 24px',
-                  minWidth: '240px',
+                  minWidth: '260px',
                   whiteSpace: 'nowrap',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                   display: 'flex',
@@ -178,6 +207,226 @@ export default function App() {
                     />
                   </div>
                 </button>
+
+                {/* Divider */}
+                <div style={{ height: 1, backgroundColor: colors.text, opacity: 0.1 }} />
+
+                {/* Break duration settings label */}
+                <span
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: colors.text,
+                    opacity: 0.5,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  Break Durations
+                </span>
+
+                {/* Short Break setting */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '4px 0',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      color: colors.text,
+                    }}
+                  >
+                    Short Break
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() =>
+                        setBreakSettings((prev) => ({
+                          ...prev,
+                          shortBreakMinutes: Math.max(5, prev.shortBreakMinutes - 1),
+                        }))
+                      }
+                      disabled={breakSettings.shortBreakMinutes <= 5}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundColor: breakSettings.shortBreakMinutes <= 5
+                          ? 'rgba(128,128,128,0.15)'
+                          : colors.buttonSecondary,
+                        color: breakSettings.shortBreakMinutes <= 5
+                          ? 'rgba(128,128,128,0.4)'
+                          : colors.text,
+                        cursor: breakSettings.shortBreakMinutes <= 5 ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        lineHeight: 1,
+                      }}
+                    >
+                      −
+                    </motion.button>
+                    <span
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        color: colors.text,
+                        minWidth: '48px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {breakSettings.shortBreakMinutes}m
+                    </span>
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() =>
+                        setBreakSettings((prev) => ({
+                          ...prev,
+                          shortBreakMinutes: Math.min(10, prev.shortBreakMinutes + 1),
+                        }))
+                      }
+                      disabled={breakSettings.shortBreakMinutes >= 10}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundColor: breakSettings.shortBreakMinutes >= 10
+                          ? 'rgba(128,128,128,0.15)'
+                          : colors.buttonSecondary,
+                        color: breakSettings.shortBreakMinutes >= 10
+                          ? 'rgba(128,128,128,0.4)'
+                          : colors.text,
+                        cursor: breakSettings.shortBreakMinutes >= 10 ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        lineHeight: 1,
+                      }}
+                    >
+                      +
+                    </motion.button>
+                  </div>
+                </div>
+
+                {/* Long Break setting */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '4px 0',
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.85rem',
+                      fontWeight: 500,
+                      color: colors.text,
+                    }}
+                  >
+                    Long Break
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() =>
+                        setBreakSettings((prev) => ({
+                          ...prev,
+                          longBreakMinutes: Math.max(15, prev.longBreakMinutes - 1),
+                        }))
+                      }
+                      disabled={breakSettings.longBreakMinutes <= 15}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundColor: breakSettings.longBreakMinutes <= 15
+                          ? 'rgba(128,128,128,0.15)'
+                          : colors.buttonSecondary,
+                        color: breakSettings.longBreakMinutes <= 15
+                          ? 'rgba(128,128,128,0.4)'
+                          : colors.text,
+                        cursor: breakSettings.longBreakMinutes <= 15 ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        lineHeight: 1,
+                      }}
+                    >
+                      −
+                    </motion.button>
+                    <span
+                      style={{
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        color: colors.text,
+                        minWidth: '48px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {breakSettings.longBreakMinutes}m
+                    </span>
+                    <motion.button
+                      whileHover={{ scale: 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() =>
+                        setBreakSettings((prev) => ({
+                          ...prev,
+                          longBreakMinutes: Math.min(30, prev.longBreakMinutes + 1),
+                        }))
+                      }
+                      disabled={breakSettings.longBreakMinutes >= 30}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundColor: breakSettings.longBreakMinutes >= 30
+                          ? 'rgba(128,128,128,0.15)'
+                          : colors.buttonSecondary,
+                        color: breakSettings.longBreakMinutes >= 30
+                          ? 'rgba(128,128,128,0.4)'
+                          : colors.text,
+                        cursor: breakSettings.longBreakMinutes >= 30 ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        lineHeight: 1,
+                      }}
+                    >
+                      +
+                    </motion.button>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -270,14 +519,17 @@ export default function App() {
             seconds={timer.seconds}
             progress={timer.progress}
             colors={colors}
+            phase={timer.phase}
+            sessionCount={timer.sessionCount}
           />
 
-          {/* Start / Pause / Reset */}
+          {/* Start / Pause / Reset / Skip */}
           <Controls
             isRunning={timer.isRunning}
             onStart={timer.start}
             onPause={timer.pause}
             onReset={timer.reset}
+            onSkip={timer.skip}
             colors={colors}
           />
 
