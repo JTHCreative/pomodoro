@@ -93,9 +93,7 @@ export default function App() {
                 src="/signature.png"
                 alt="signature"
                 style={{
-                  height: '22px',
-                  opacity: 0.55,
-                  filter: `brightness(0) saturate(100%)`,
+                  height: '40px',
                 }}
               />
             </div>
