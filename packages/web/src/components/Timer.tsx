@@ -9,12 +9,10 @@ interface TimerProps {
   colors: ThemeColors;
   phase: TimerPhase;
   sessionCount: number;
+  isMobile?: boolean;
 }
 
-const SIZE = 280;
 const STROKE_WIDTH = 8;
-const RADIUS = (SIZE - STROKE_WIDTH) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const phaseLabels: Record<TimerPhase, string> = {
   pomodoro: 'Focus',
@@ -22,14 +20,17 @@ const phaseLabels: Record<TimerPhase, string> = {
   longBreak: 'Long Break',
 };
 
-export default function Timer({ minutes, seconds, progress, colors, phase, sessionCount }: TimerProps) {
+export default function Timer({ minutes, seconds, progress, colors, phase, sessionCount, isMobile = false }: TimerProps) {
+  const SIZE = isMobile ? 220 : 280;
+  const RADIUS = (SIZE - STROKE_WIDTH) / 2;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
   const offset = CIRCUMFERENCE * (1 - progress);
   const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
   const totalSeconds = minutes * 60 + seconds;
   const isLastMinute = totalSeconds <= 60 && totalSeconds > 0;
-
-  // Show session dots (filled = completed, outline = remaining)
   const totalSessions = 4;
+  const timerFontSize = isMobile ? '3rem' : '4rem';
+  const phaseFontSize = isMobile ? '0.7rem' : '0.8rem';
 
   return (
     <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
@@ -39,7 +40,6 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
         viewBox={`0 0 ${SIZE} ${SIZE}`}
         style={{ transform: 'rotate(-90deg)' }}
       >
-        {/* Track */}
         <circle
           cx={SIZE / 2}
           cy={SIZE / 2}
@@ -49,7 +49,6 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
           strokeWidth={STROKE_WIDTH}
           opacity={0.5}
         />
-        {/* Progress */}
         <motion.circle
           cx={SIZE / 2}
           cy={SIZE / 2}
@@ -64,7 +63,6 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
         />
       </svg>
 
-      {/* Time display */}
       <div
         style={{
           position: 'absolute',
@@ -76,7 +74,6 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
           gap: '4px',
         }}
       >
-        {/* Phase label */}
         <motion.span
           key={phase}
           initial={{ opacity: 0, y: -4 }}
@@ -84,7 +81,7 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
           transition={{ duration: 0.3 }}
           style={{
             fontFamily: "'Inter', sans-serif",
-            fontSize: '0.8rem',
+            fontSize: phaseFontSize,
             fontWeight: 600,
             color: colors.timerText,
             textTransform: 'uppercase',
@@ -102,7 +99,7 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
             transition={{ duration: 0.3, ease: 'easeOut' }}
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '4rem',
+              fontSize: timerFontSize,
               fontWeight: 600,
               color: colors.timerText,
               letterSpacing: '0.05em',
@@ -115,7 +112,7 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
           <span
             style={{
               fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '4rem',
+              fontSize: timerFontSize,
               fontWeight: 600,
               color: colors.timerText,
               letterSpacing: '0.05em',
@@ -126,7 +123,6 @@ export default function Timer({ minutes, seconds, progress, colors, phase, sessi
           </span>
         )}
 
-        {/* Session dots */}
         <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
           {Array.from({ length: totalSessions }).map((_, i) => (
             <div

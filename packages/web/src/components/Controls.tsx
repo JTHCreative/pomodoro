@@ -9,35 +9,36 @@ interface ControlsProps {
   onReset: () => void;
   onSkip: () => void;
   colors: ThemeColors;
+  isMobile?: boolean;
 }
 
-const buttonBase: React.CSSProperties = {
-  padding: '14px 36px',
-  borderRadius: '50px',
-  border: 'none',
-  fontSize: '1rem',
-  fontWeight: 600,
-  fontFamily: "'Inter', sans-serif",
-  cursor: 'pointer',
-  letterSpacing: '0.03em',
-  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-};
+export default function Controls({ isRunning, onStart, onPause, onReset, onSkip, colors, isMobile = false }: ControlsProps) {
+  const buttonBase: React.CSSProperties = {
+    padding: isMobile ? '12px 24px' : '14px 36px',
+    borderRadius: '50px',
+    border: 'none',
+    fontSize: isMobile ? '0.9rem' : '1rem',
+    fontWeight: 600,
+    fontFamily: "'Inter', sans-serif",
+    cursor: 'pointer',
+    letterSpacing: '0.03em',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+  };
 
-const smallButton: React.CSSProperties = {
-  padding: '10px 20px',
-  borderRadius: '50px',
-  border: 'none',
-  fontSize: '0.85rem',
-  fontWeight: 600,
-  fontFamily: "'Inter', sans-serif",
-  cursor: 'pointer',
-  letterSpacing: '0.03em',
-  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-};
+  const smallButton: React.CSSProperties = {
+    padding: isMobile ? '10px 16px' : '10px 20px',
+    borderRadius: '50px',
+    border: 'none',
+    fontSize: isMobile ? '0.8rem' : '0.85rem',
+    fontWeight: 600,
+    fontFamily: "'Inter', sans-serif",
+    cursor: 'pointer',
+    letterSpacing: '0.03em',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+  };
 
-export default function Controls({ isRunning, onStart, onPause, onReset, onSkip, colors }: ControlsProps) {
   return (
-    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', alignItems: 'center' }}>
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
