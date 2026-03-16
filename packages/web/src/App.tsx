@@ -8,6 +8,7 @@ import OceanScene from './components/animations/OceanScene';
 import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
 import { playAmbience, stopAmbience } from './audio/ambience';
+import { GearIcon, SunIcon, MoonIcon } from './components/Icons';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
 
@@ -89,7 +90,7 @@ export default function App() {
             }}
             title="Settings"
           >
-            ⚙️
+            <GearIcon size={20} color={colors.text} />
           </motion.button>
 
           {/* Settings dropdown */}
@@ -107,8 +108,9 @@ export default function App() {
                   background: isDark ? 'rgba(20,20,40,0.85)' : 'rgba(255,255,255,0.85)',
                   backdropFilter: 'blur(12px)',
                   borderRadius: '14px',
-                  padding: '16px 20px',
-                  minWidth: '180px',
+                  padding: '16px 24px',
+                  minWidth: '240px',
+                  whiteSpace: 'nowrap',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                   display: 'flex',
                   flexDirection: 'column',
@@ -147,7 +149,10 @@ export default function App() {
                     color: colors.text,
                   }}
                 >
-                  <span>{isDark ? '🌙 Dark Mode' : '☀️ Light Mode'}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {isDark ? <MoonIcon size={16} color={colors.text} /> : <SunIcon size={16} color={colors.text} />}
+                    {isDark ? 'Dark Mode' : 'Light Mode'}
+                  </span>
                   <div
                     style={{
                       width: 40,

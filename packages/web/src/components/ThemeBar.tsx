@@ -1,6 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Theme } from '@pomodoro/shared';
+import { WaveIcon, TreeIcon, StarsIcon } from './Icons';
+
+const themeIcons: Record<Theme['id'], React.ComponentType<{ size?: number; color?: string }>> = {
+  ocean: WaveIcon,
+  forest: TreeIcon,
+  sky: StarsIcon,
+};
 
 interface ThemeBarProps {
   themes: Theme[];
@@ -25,6 +32,7 @@ export default function ThemeBar({ themes, activeThemeId, isDark, onSelectTheme 
       {themes.map((theme) => {
         const isActive = theme.id === activeThemeId;
         const c = isDark ? theme.darkColors : theme.colors;
+        const Icon = themeIcons[theme.id];
         return (
           <motion.button
             key={theme.id}
@@ -49,7 +57,7 @@ export default function ThemeBar({ themes, activeThemeId, isDark, onSelectTheme 
               transition: 'background-color 0.3s, border-color 0.3s',
             }}
           >
-            <span style={{ fontSize: '1.2rem' }}>{theme.icon}</span>
+            <Icon size={18} color={c.text} />
             <span>{theme.name}</span>
           </motion.button>
         );
