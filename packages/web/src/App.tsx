@@ -209,7 +209,7 @@ export default function App() {
             >
               Pomodoro
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
               <span
                 style={{
                   fontFamily: "'Inter', sans-serif",
