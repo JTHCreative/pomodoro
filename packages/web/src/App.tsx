@@ -77,7 +77,7 @@ export default function App() {
             >
               Pomodoro
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
               <span
                 style={{
                   fontFamily: "'Inter', sans-serif",
@@ -94,6 +94,8 @@ export default function App() {
                 alt="signature"
                 style={{
                   height: '40px',
+                  position: 'relative',
+                  top: '12px',
                 }}
               />
             </div>
