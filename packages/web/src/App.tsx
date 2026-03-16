@@ -7,8 +7,8 @@ import Controls from './components/Controls';
 import OceanScene from './components/animations/OceanScene';
 import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
-import { playAmbience, stopAmbience, tickCountdown } from './audio/ambience';
-import { GearIcon, SunIcon, MoonIcon, VolumeOnIcon, VolumeOffIcon } from './components/Icons';
+import { playAmbience, stopAmbience, setAmbienceVolume, tickCountdown } from './audio/ambience';
+import { GearIcon, SunIcon, MoonIcon, VolumeOnIcon, VolumeLowIcon, VolumeOffIcon } from './components/Icons';
 import useIsMobile from './hooks/useIsMobile';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
@@ -22,6 +22,10 @@ const sceneMap: Record<Theme['id'], React.ComponentType<{ isDark: boolean }>> = 
 export default function App() {
   const [activeThemeId, setActiveThemeId] = useState<Theme['id']>('ocean');
   const [audioOn, setAudioOn] = useState(false);
+  const [volume, setVolume] = useState(0.75);
+  const volumeBeforeMute = useRef(0.75);
+  const [sliderVisible, setSliderVisible] = useState(false);
+  const sliderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isDark, setIsDark] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [breakSettings, setBreakSettings] = useState<BreakSettings>({
@@ -69,11 +73,58 @@ export default function App() {
   useEffect(() => {
     if (audioOn) {
       playAmbience(activeThemeId);
+      setAmbienceVolume(volume);
     } else {
       stopAmbience();
     }
     return () => stopAmbience();
   }, [activeThemeId, audioOn]);
+
+  // Sync volume changes to audio engine
+  useEffect(() => {
+    if (audioOn) {
+      setAmbienceVolume(volume);
+    }
+  }, [volume, audioOn]);
+
+  const handleAudioToggle = useCallback(() => {
+    if (audioOn) {
+      // Muting — save current volume
+      volumeBeforeMute.current = volume;
+      setAudioOn(false);
+    } else {
+      // Unmuting — restore previous volume (ensure it's audible)
+      const restoreVol = volumeBeforeMute.current > 0 ? volumeBeforeMute.current : 0.75;
+      setVolume(restoreVol);
+      setAudioOn(true);
+    }
+  }, [audioOn, volume]);
+
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    setVolume(newVolume);
+    if (newVolume === 0) {
+      // Sliding to 0 mutes
+      volumeBeforeMute.current = 0.75; // default restore
+      setAudioOn(false);
+    } else if (!audioOn) {
+      // Sliding up from 0 unmutes
+      setAudioOn(true);
+    }
+  }, [audioOn]);
+
+  const handleSliderMouseEnter = useCallback(() => {
+    if (sliderTimeoutRef.current) {
+      clearTimeout(sliderTimeoutRef.current);
+      sliderTimeoutRef.current = null;
+    }
+    setSliderVisible(true);
+  }, []);
+
+  const handleSliderMouseLeave = useCallback(() => {
+    sliderTimeoutRef.current = setTimeout(() => {
+      setSliderVisible(false);
+    }, 300);
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -540,30 +591,100 @@ export default function App() {
             isMobile={isMobile}
           />
 
-          {/* Sound toggle */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setAudioOn((prev) => !prev)}
+          {/* Sound toggle + volume slider */}
+          <div
+            onMouseEnter={handleSliderMouseEnter}
+            onMouseLeave={handleSliderMouseLeave}
             style={{
-              background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)',
-              backdropFilter: 'blur(8px)',
-              border: 'none',
-              borderRadius: '50%',
-              width: 44,
-              height: 44,
-              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.3rem',
-              color: colors.text,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              gap: '0px',
+              position: 'relative',
             }}
-            title={audioOn ? 'Mute ambient sound' : 'Play ambient sound'}
           >
-            {audioOn ? <VolumeOnIcon size={20} color={colors.text} /> : <VolumeOffIcon size={20} color={colors.text} />}
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAudioToggle}
+              style={{
+                background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)',
+                backdropFilter: 'blur(8px)',
+                border: 'none',
+                borderRadius: '50%',
+                width: 44,
+                height: 44,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.3rem',
+                color: colors.text,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                flexShrink: 0,
+              }}
+              title={audioOn ? 'Mute ambient sound' : 'Play ambient sound'}
+            >
+              {!audioOn ? (
+                <VolumeOffIcon size={20} color={colors.text} />
+              ) : volume < 0.5 ? (
+                <VolumeLowIcon size={20} color={colors.text} />
+              ) : (
+                <VolumeOnIcon size={20} color={colors.text} />
+              )}
+            </motion.button>
+
+            <AnimatePresence>
+              {sliderVisible && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: isMobile ? 100 : 120, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  style={{
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: 44,
+                    marginLeft: 4,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: isMobile ? 100 : 120,
+                      height: 36,
+                      display: 'flex',
+                      alignItems: 'center',
+                      paddingLeft: 8,
+                      paddingRight: 12,
+                      background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)',
+                      backdropFilter: 'blur(8px)',
+                      borderRadius: 18,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={audioOn ? volume : 0}
+                      onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                      style={{
+                        width: '100%',
+                        height: 4,
+                        appearance: 'none',
+                        WebkitAppearance: 'none',
+                        background: `linear-gradient(to right, ${colors.accent} ${(audioOn ? volume : 0) * 100}%, ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'} ${(audioOn ? volume : 0) * 100}%)`,
+                        borderRadius: 2,
+                        outline: 'none',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>
