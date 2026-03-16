@@ -225,7 +225,7 @@ export default function App() {
               </span>
               {isDark ? (
                 <img
-                  src="/signature.png"
+                  src={`${import.meta.env.BASE_URL}signature.png`}
                   alt="signature"
                   style={{
                     height: '40px',
@@ -240,11 +240,11 @@ export default function App() {
                     height: '40px',
                     width: '120px',
                     backgroundColor: colors.text,
-                    WebkitMaskImage: 'url(/signature.png)',
+                    WebkitMaskImage: `url(${import.meta.env.BASE_URL}signature.png)`,
                     WebkitMaskSize: 'contain',
                     WebkitMaskRepeat: 'no-repeat',
                     WebkitMaskPosition: 'center',
-                    maskImage: 'url(/signature.png)',
+                    maskImage: `url(${import.meta.env.BASE_URL}signature.png)`,
                     maskSize: 'contain',
                     maskRepeat: 'no-repeat',
                     maskPosition: 'center',
