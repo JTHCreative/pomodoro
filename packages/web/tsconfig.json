@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": true,
+    "paths": {
+      "@pomodoro/shared": ["../shared/index.ts"],
+      "@pomodoro/shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["src", "../shared"]
+}
