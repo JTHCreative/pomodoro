@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTimer, oceanTheme, forestTheme, skyTheme, Theme } from '@pomodoro/shared';
 import Timer from './components/Timer';
@@ -7,6 +7,7 @@ import Controls from './components/Controls';
 import OceanScene from './components/animations/OceanScene';
 import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
+import { playAmbience, stopAmbience } from './audio/ambience';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
 
@@ -18,6 +19,7 @@ const sceneMap: Record<Theme['id'], React.ComponentType> = {
 
 export default function App() {
   const [activeThemeId, setActiveThemeId] = useState<Theme['id']>('ocean');
+  const [audioOn, setAudioOn] = useState(false);
   const timer = useTimer();
 
   const activeTheme = themes.find((t) => t.id === activeThemeId)!;
@@ -26,6 +28,16 @@ export default function App() {
   const handleSelectTheme = useCallback((id: Theme['id']) => {
     setActiveThemeId(id);
   }, []);
+
+  // Play/stop ambient audio when theme or toggle changes
+  useEffect(() => {
+    if (audioOn) {
+      playAmbience(activeThemeId);
+    } else {
+      stopAmbience();
+    }
+    return () => stopAmbience();
+  }, [activeThemeId, audioOn]);
 
   return (
     <AnimatePresence mode="wait">
@@ -124,6 +136,31 @@ export default function App() {
             onReset={timer.reset}
             colors={activeTheme.colors}
           />
+
+          {/* Sound toggle */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setAudioOn((prev) => !prev)}
+            style={{
+              background: 'rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(8px)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 44,
+              height: 44,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.3rem',
+              color: activeTheme.colors.text,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+            title={audioOn ? 'Mute ambient sound' : 'Play ambient sound'}
+          >
+            {audioOn ? '🔊' : '🔇'}
+          </motion.button>
         </div>
       </motion.div>
     </AnimatePresence>
