@@ -169,78 +169,120 @@ function startForest(ctx: AudioContext) {
 // ─── Sky: nighttime crickets ───
 function startSky(ctx: AudioContext) {
   const master = ctx.createGain();
-  master.gain.value = 0.3;
+  master.gain.value = 0.25;
   master.connect(ctx.destination);
   activeNodes.push(master);
 
-  // Very soft background hiss (quiet night air)
+  // Soft night air
   const noise = ctx.createBufferSource();
   noise.buffer = createNoiseBuffer(ctx, 4);
   noise.loop = true;
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 400;
+  lp.frequency.value = 350;
   const airGain = ctx.createGain();
-  airGain.gain.value = 0.03;
+  airGain.gain.value = 0.035;
   noise.connect(lp).connect(airGain).connect(master);
   noise.start();
   activeNodes.push(noise, lp, airGain);
 
-  // Cricket — a rapid on/off trill at a high frequency
-  function createCricket(freq: number, trillRate: number, volume: number, pan: number) {
-    // Tone source
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
+  // A single cricket chirp burst: a short series of rapid pulses
+  // Real crickets chirp in bursts of 3-6 pulses, then pause
+  function cricketBurst(
+    freq: number,
+    pan: number,
+    volume: number,
+    pulses: number,
+  ) {
+    const now = ctx.currentTime;
+    const pulseLen = 0.035 + Math.random() * 0.015; // each pulse ~35-50ms
+    const gapLen = 0.02 + Math.random() * 0.01;     // gap between pulses ~20-30ms
+    const burstDuration = pulses * (pulseLen + gapLen);
 
-    // Rapid amplitude modulation to create the trill
-    const trillOsc = ctx.createOscillator();
-    trillOsc.type = 'square';
-    trillOsc.frequency.value = trillRate;
+    // Tone — use two detuned sines for warmth instead of a raw sine
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sine';
+    osc1.frequency.value = freq;
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sine';
+    osc2.frequency.value = freq * 1.005; // slight detune
 
-    const trillGain = ctx.createGain();
-    trillGain.gain.value = 0;
+    // Bandpass to soften the tone
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = freq;
+    bp.Q.value = 2;
 
-    // Use the square wave to modulate the gain
-    const modGain = ctx.createGain();
-    modGain.gain.value = volume;
+    const envGain = ctx.createGain();
+    envGain.gain.setValueAtTime(0, now);
 
-    trillOsc.connect(trillGain.gain);
-    osc.connect(trillGain).connect(modGain);
+    // Schedule each pulse with soft attack/release
+    for (let i = 0; i < pulses; i++) {
+      const pulseStart = now + i * (pulseLen + gapLen);
+      const peak = volume * (0.7 + 0.3 * Math.sin(Math.PI * i / pulses)); // swell shape
+      envGain.gain.setValueAtTime(0, pulseStart);
+      envGain.gain.linearRampToValueAtTime(peak, pulseStart + 0.008);
+      envGain.gain.setValueAtTime(peak, pulseStart + pulseLen - 0.008);
+      envGain.gain.linearRampToValueAtTime(0, pulseStart + pulseLen);
+    }
 
-    // Stereo panning
     const panner = ctx.createStereoPanner();
     panner.pan.value = pan;
-    modGain.connect(panner).connect(master);
 
-    osc.start();
-    trillOsc.start();
-    activeNodes.push(osc, trillOsc, trillGain, modGain, panner);
+    const mix = ctx.createGain();
+    mix.gain.value = 0.5;
 
-    return modGain;
+    osc1.connect(bp);
+    osc2.connect(bp);
+    bp.connect(envGain).connect(mix).connect(panner).connect(master);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + burstDuration + 0.05);
+    osc2.stop(now + burstDuration + 0.05);
   }
 
-  // Layer several crickets at slightly different pitches and rates
-  const cricket1 = createCricket(4200, 28, 0.04, -0.6);
-  const cricket2 = createCricket(3800, 32, 0.03, 0.5);
-  const cricket3 = createCricket(4500, 25, 0.025, 0.2);
-
-  // Slowly vary each cricket's volume so they fade in and out naturally
-  function modulateCrickets() {
-    const now = ctx.currentTime;
-    const period = 4 + Math.random() * 4;
-
-    [cricket1, cricket2, cricket3].forEach((c) => {
-      const base = c.gain.value;
-      const target = 0.015 + Math.random() * 0.04;
-      c.gain.cancelScheduledValues(now);
-      c.gain.setValueAtTime(base, now);
-      c.gain.linearRampToValueAtTime(target, now + period);
-    });
+  // Schedule repeating cricket patterns
+  // Each cricket has its own rhythm: chirp burst, pause, repeat
+  interface CricketConfig {
+    freq: number;
+    pan: number;
+    volume: number;
+    minPulses: number;
+    maxPulses: number;
+    minPause: number;  // ms between bursts
+    maxPause: number;
   }
-  modulateCrickets();
-  const cricketIv = setInterval(modulateCrickets, 5000);
-  activeIntervals.push(cricketIv);
+
+  const crickets: CricketConfig[] = [
+    { freq: 3400, pan: -0.7, volume: 0.04, minPulses: 3, maxPulses: 5, minPause: 800, maxPause: 2500 },
+    { freq: 3800, pan: 0.5,  volume: 0.03, minPulses: 4, maxPulses: 7, minPause: 600, maxPause: 2000 },
+    { freq: 3100, pan: 0.3,  volume: 0.025, minPulses: 2, maxPulses: 4, minPause: 1500, maxPause: 4000 },
+    { freq: 3600, pan: -0.3, volume: 0.02, minPulses: 5, maxPulses: 8, minPause: 1000, maxPause: 3000 },
+  ];
+
+  function scheduleCricket(config: CricketConfig) {
+    if (!isPlaying || currentTheme !== 'sky') return;
+
+    const pulses = config.minPulses + Math.floor(Math.random() * (config.maxPulses - config.minPulses + 1));
+    // Slight pitch variation each time (±3%)
+    const freq = config.freq * (0.97 + Math.random() * 0.06);
+    // Slight volume variation
+    const vol = config.volume * (0.6 + Math.random() * 0.4);
+
+    cricketBurst(freq, config.pan, vol, pulses);
+
+    const pause = config.minPause + Math.random() * (config.maxPause - config.minPause);
+    const iv = setTimeout(() => scheduleCricket(config), pause);
+    activeIntervals.push(iv as any);
+  }
+
+  // Stagger the start of each cricket
+  crickets.forEach((config, i) => {
+    const startDelay = i * 400 + Math.random() * 800;
+    const iv = setTimeout(() => scheduleCricket(config), startDelay);
+    activeIntervals.push(iv as any);
+  });
 }
 
 // ─── Public API ───
