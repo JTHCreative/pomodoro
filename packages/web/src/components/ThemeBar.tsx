@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Theme } from '@pomodoro/shared';
-import { WaveIcon, TreeIcon, StarsIcon } from './Icons';
+import { WaveIcon, PlantIcon, CrescentMoonIcon } from './Icons';
 
 const themeIcons: Record<Theme['id'], React.ComponentType<{ size?: number; color?: string }>> = {
   ocean: WaveIcon,
-  forest: TreeIcon,
-  sky: StarsIcon,
+  forest: PlantIcon,
+  sky: CrescentMoonIcon,
 };
 
 interface ThemeBarProps {

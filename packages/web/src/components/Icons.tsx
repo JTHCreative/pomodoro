@@ -51,20 +51,23 @@ export function WaveIcon({ size = 18, color = 'currentColor' }: IconProps) {
   );
 }
 
-// Tree / Pine icon for Forest theme
-export function TreeIcon({ size = 18, color = 'currentColor' }: IconProps) {
+// Plant / Seedling icon for Forest theme
+export function PlantIcon({ size = 18, color = 'currentColor' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3L4 14h5v7h6v-7h5L12 3z" />
+      <path d="M7 20h10" />
+      <path d="M12 20v-8" />
+      <path d="M12 12C12 8 8 4.5 3 4c0 6 3 9 9 8z" />
+      <path d="M12 12c0-4 4-7.5 9-8 0 6-3 9-9 8z" />
     </svg>
   );
 }
 
-// Stars icon for Sky theme
-export function StarsIcon({ size = 18, color = 'currentColor' }: IconProps) {
+// Crescent moon icon for Sky theme (yellow filled)
+export function CrescentMoonIcon({ size = 18 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2l2.09 6.26L21 9.27l-5 4.87L17.18 21 12 17.27 6.82 21 8 14.14l-5-4.87 6.91-1.01L12 2z" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="#F5D76E" stroke="#E6C44D" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   );
 }
