@@ -218,16 +218,36 @@ export default function App() {
               >
                 by
               </span>
-              <img
-                src="/signature.png"
-                alt="signature"
-                style={{
-                  height: '40px',
-                  filter: isDark ? 'none' : 'brightness(0)',
-                  opacity: isDark ? 0.9 : 0.6,
-                  transition: 'filter 0.3s, opacity 0.3s',
-                }}
-              />
+              {isDark ? (
+                <img
+                  src="/signature.png"
+                  alt="signature"
+                  style={{
+                    height: '40px',
+                    opacity: 0.9,
+                  }}
+                />
+              ) : (
+                <div
+                  role="img"
+                  aria-label="signature"
+                  style={{
+                    height: '40px',
+                    width: '120px',
+                    backgroundColor: colors.text,
+                    WebkitMaskImage: 'url(/signature.png)',
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                    WebkitMaskPosition: 'center',
+                    maskImage: 'url(/signature.png)',
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    maskPosition: 'center',
+                    opacity: 0.7,
+                    transition: 'background-color 0.3s',
+                  }}
+                />
+              )}
             </div>
           </div>
 
