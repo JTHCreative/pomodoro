@@ -166,68 +166,81 @@ function startForest(ctx: AudioContext) {
   scheduleChirps();
 }
 
-// ─── Sky: gentle wind with soft whistling ───
+// ─── Sky: nighttime crickets ───
 function startSky(ctx: AudioContext) {
   const master = ctx.createGain();
   master.gain.value = 0.3;
   master.connect(ctx.destination);
   activeNodes.push(master);
 
-  // Base wind — filtered noise with slow modulation
+  // Very soft background hiss (quiet night air)
   const noise = ctx.createBufferSource();
   noise.buffer = createNoiseBuffer(ctx, 4);
   noise.loop = true;
-
   const lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
-  lp.frequency.value = 600;
-  lp.Q.value = 0.8;
-
-  const windGain = ctx.createGain();
-  windGain.gain.value = 0.15;
-  noise.connect(lp).connect(windGain).connect(master);
+  lp.frequency.value = 400;
+  const airGain = ctx.createGain();
+  airGain.gain.value = 0.03;
+  noise.connect(lp).connect(airGain).connect(master);
   noise.start();
-  activeNodes.push(noise, lp, windGain);
+  activeNodes.push(noise, lp, airGain);
 
-  // Wind modulation — slow swells
-  function modulateWind() {
-    const now = ctx.currentTime;
-    const period = 5 + Math.random() * 4;
-    windGain.gain.cancelScheduledValues(now);
-    windGain.gain.setValueAtTime(windGain.gain.value, now);
-    windGain.gain.linearRampToValueAtTime(0.08 + Math.random() * 0.14, now + period * 0.5);
-    windGain.gain.linearRampToValueAtTime(0.04 + Math.random() * 0.06, now + period);
+  // Cricket — a rapid on/off trill at a high frequency
+  function createCricket(freq: number, trillRate: number, volume: number, pan: number) {
+    // Tone source
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+
+    // Rapid amplitude modulation to create the trill
+    const trillOsc = ctx.createOscillator();
+    trillOsc.type = 'square';
+    trillOsc.frequency.value = trillRate;
+
+    const trillGain = ctx.createGain();
+    trillGain.gain.value = 0;
+
+    // Use the square wave to modulate the gain
+    const modGain = ctx.createGain();
+    modGain.gain.value = volume;
+
+    trillOsc.connect(trillGain.gain);
+    osc.connect(trillGain).connect(modGain);
+
+    // Stereo panning
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = pan;
+    modGain.connect(panner).connect(master);
+
+    osc.start();
+    trillOsc.start();
+    activeNodes.push(osc, trillOsc, trillGain, modGain, panner);
+
+    return modGain;
   }
-  modulateWind();
-  const windIv = setInterval(modulateWind, 6000);
-  activeIntervals.push(windIv);
 
-  // High whistle layer — very faint
-  const noise2 = ctx.createBufferSource();
-  noise2.buffer = createNoiseBuffer(ctx, 4);
-  noise2.loop = true;
-  const hp = ctx.createBiquadFilter();
-  hp.type = 'bandpass';
-  hp.frequency.value = 2000;
-  hp.Q.value = 5;
-  const whistleGain = ctx.createGain();
-  whistleGain.gain.value = 0.02;
-  noise2.connect(hp).connect(whistleGain).connect(master);
-  noise2.start();
-  activeNodes.push(noise2, hp, whistleGain);
+  // Layer several crickets at slightly different pitches and rates
+  const cricket1 = createCricket(4200, 28, 0.04, -0.6);
+  const cricket2 = createCricket(3800, 32, 0.03, 0.5);
+  const cricket3 = createCricket(4500, 25, 0.025, 0.2);
 
-  // Whistle swell
-  function modulateWhistle() {
+  // Slowly vary each cricket's volume so they fade in and out naturally
+  function modulateCrickets() {
     const now = ctx.currentTime;
-    const period = 8 + Math.random() * 6;
-    whistleGain.gain.cancelScheduledValues(now);
-    whistleGain.gain.setValueAtTime(whistleGain.gain.value, now);
-    whistleGain.gain.linearRampToValueAtTime(0.01 + Math.random() * 0.03, now + period * 0.5);
-    whistleGain.gain.linearRampToValueAtTime(0.005, now + period);
+    const period = 4 + Math.random() * 4;
+
+    [cricket1, cricket2, cricket3].forEach((c) => {
+      const base = c.gain.value;
+      const target = 0.015 + Math.random() * 0.04;
+      c.gain.cancelScheduledValues(now);
+      c.gain.setValueAtTime(base, now);
+      c.gain.linearRampToValueAtTime(target, now + period);
+    });
   }
-  modulateWhistle();
-  const whistleIv = setInterval(modulateWhistle, 10000);
-  activeIntervals.push(whistleIv);
+  modulateCrickets();
+  const cricketIv = setInterval(modulateCrickets, 5000);
+  activeIntervals.push(cricketIv);
 }
 
 // ─── Public API ───
