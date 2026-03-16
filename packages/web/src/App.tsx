@@ -9,6 +9,7 @@ import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
 import { playAmbience, stopAmbience, tickCountdown } from './audio/ambience';
 import { GearIcon, SunIcon, MoonIcon, VolumeOnIcon, VolumeOffIcon } from './components/Icons';
+import useIsMobile from './hooks/useIsMobile';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
 
@@ -27,6 +28,8 @@ export default function App() {
     shortBreakMinutes: 5,
     longBreakMinutes: 15,
   });
+
+  const isMobile = useIsMobile();
 
   const handlePhaseComplete = useCallback((phase: TimerPhase) => {
     // Final beep is already played by tickCountdown at 0
@@ -83,21 +86,22 @@ export default function App() {
         style={{
           position: 'relative',
           width: '100%',
-          height: '100vh',
+          height: '100dvh',
           backgroundColor: colors.background,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '32px',
+          gap: isMobile ? '16px' : '32px',
           overflow: 'hidden',
+          padding: isMobile ? '16px 12px' : 0,
         }}
       >
         {/* Animated background */}
         <Scene isDark={isDark} />
 
         {/* Settings gear — top right */}
-        <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
+        <div style={{ position: 'absolute', top: isMobile ? 12 : 20, right: isMobile ? 12 : 20, zIndex: 10 }}>
           <motion.button
             whileHover={{ scale: 1.1, rotate: 30 }}
             whileTap={{ scale: 0.95 }}
@@ -133,12 +137,12 @@ export default function App() {
                 style={{
                   position: 'absolute',
                   top: 50,
-                  right: 0,
+                  right: isMobile ? -4 : 0,
                   background: isDark ? 'rgba(20,20,40,0.85)' : 'rgba(255,255,255,0.85)',
                   backdropFilter: 'blur(12px)',
                   borderRadius: '14px',
-                  padding: '16px 24px',
-                  minWidth: '260px',
+                  padding: isMobile ? '14px 18px' : '16px 24px',
+                  minWidth: isMobile ? '240px' : '260px',
                   whiteSpace: 'nowrap',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
                   display: 'flex',
@@ -440,15 +444,15 @@ export default function App() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '36px',
+            gap: isMobile ? '20px' : '36px',
           }}
         >
           {/* Title + Signature */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginBottom: isMobile ? '0' : '8px' }}>
             <h1
               style={{
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '2.4rem',
+                fontSize: isMobile ? '1.6rem' : '2.4rem',
                 fontWeight: 700,
                 color: colors.text,
                 letterSpacing: '0.12em',
@@ -477,7 +481,7 @@ export default function App() {
                   src={`${import.meta.env.BASE_URL}signature.png`}
                   alt="signature"
                   style={{
-                    height: '40px',
+                    height: isMobile ? '30px' : '40px',
                     opacity: 0.9,
                   }}
                 />
@@ -486,8 +490,8 @@ export default function App() {
                   role="img"
                   aria-label="signature"
                   style={{
-                    height: '40px',
-                    width: '120px',
+                    height: isMobile ? '30px' : '40px',
+                    width: isMobile ? '90px' : '120px',
                     backgroundColor: colors.text,
                     WebkitMaskImage: `url(${import.meta.env.BASE_URL}signature.png)`,
                     WebkitMaskSize: 'contain',
@@ -510,6 +514,7 @@ export default function App() {
             themes={themes}
             activeThemeId={activeThemeId}
             isDark={isDark}
+            isMobile={isMobile}
             onSelectTheme={handleSelectTheme}
           />
 
@@ -521,6 +526,7 @@ export default function App() {
             colors={colors}
             phase={timer.phase}
             sessionCount={timer.sessionCount}
+            isMobile={isMobile}
           />
 
           {/* Start / Pause / Reset / Skip */}
@@ -531,6 +537,7 @@ export default function App() {
             onReset={timer.reset}
             onSkip={timer.skip}
             colors={colors}
+            isMobile={isMobile}
           />
 
           {/* Sound toggle */}

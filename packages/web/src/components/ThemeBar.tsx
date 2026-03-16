@@ -13,16 +13,17 @@ interface ThemeBarProps {
   themes: Theme[];
   activeThemeId: string;
   isDark: boolean;
+  isMobile?: boolean;
   onSelectTheme: (id: Theme['id']) => void;
 }
 
-export default function ThemeBar({ themes, activeThemeId, isDark, onSelectTheme }: ThemeBarProps) {
+export default function ThemeBar({ themes, activeThemeId, isDark, isMobile = false, onSelectTheme }: ThemeBarProps) {
   return (
     <div
       style={{
         display: 'flex',
-        gap: '12px',
-        padding: '10px 20px',
+        gap: isMobile ? '6px' : '12px',
+        padding: isMobile ? '8px 12px' : '10px 20px',
         borderRadius: '50px',
         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.35)',
         backdropFilter: 'blur(10px)',
@@ -42,22 +43,22 @@ export default function ThemeBar({ themes, activeThemeId, isDark, onSelectTheme 
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '8px 18px',
+              gap: isMobile ? '5px' : '8px',
+              padding: isMobile ? '7px 12px' : '8px 18px',
               borderRadius: '30px',
               border: isActive
                 ? `2px solid ${c.accent}`
                 : '2px solid transparent',
               backgroundColor: isActive ? c.surface : 'transparent',
               cursor: 'pointer',
-              fontSize: '0.9rem',
+              fontSize: isMobile ? '0.78rem' : '0.9rem',
               fontWeight: 600,
               fontFamily: "'Inter', sans-serif",
               color: c.text,
               transition: 'background-color 0.3s, border-color 0.3s',
             }}
           >
-            <Icon size={18} color={c.text} />
+            <Icon size={isMobile ? 15 : 18} color={c.text} />
             <span>{theme.name}</span>
           </motion.button>
         );
