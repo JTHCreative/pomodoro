@@ -110,7 +110,7 @@ function startForest(ctx: AudioContext) {
   bp.frequency.value = 800;
   bp.Q.value = 0.3;
   const rustleGain = ctx.createGain();
-  rustleGain.gain.value = 0.06;
+  rustleGain.gain.value = 0.02;
   noise.connect(bp).connect(rustleGain).connect(master);
   noise.start();
   activeNodes.push(noise, bp, rustleGain);
@@ -121,35 +121,36 @@ function startForest(ctx: AudioContext) {
     const osc = ctx.createOscillator();
     const chirpGain = ctx.createGain();
 
-    // Random bird pitch
-    const baseFreq = 1800 + Math.random() * 2000;
+    // Random bird pitch — lower range, gentler
+    const baseFreq = 1400 + Math.random() * 1200;
     osc.type = 'sine';
     osc.frequency.setValueAtTime(baseFreq, now);
-    osc.frequency.linearRampToValueAtTime(baseFreq * (1 + Math.random() * 0.3), now + 0.06);
-    osc.frequency.linearRampToValueAtTime(baseFreq * 0.9, now + 0.12);
+    osc.frequency.linearRampToValueAtTime(baseFreq * (1 + Math.random() * 0.2), now + 0.08);
+    osc.frequency.linearRampToValueAtTime(baseFreq * 0.95, now + 0.18);
 
+    // Softer attack, longer fade
     chirpGain.gain.setValueAtTime(0, now);
-    chirpGain.gain.linearRampToValueAtTime(0.12, now + 0.01);
-    chirpGain.gain.linearRampToValueAtTime(0, now + 0.12);
+    chirpGain.gain.linearRampToValueAtTime(0.06, now + 0.04);
+    chirpGain.gain.linearRampToValueAtTime(0, now + 0.18);
 
     osc.connect(chirpGain).connect(master);
     osc.start(now);
-    osc.stop(now + 0.15);
+    osc.stop(now + 0.2);
 
     // Sometimes do a double chirp
     if (Math.random() > 0.5) {
       const osc2 = ctx.createOscillator();
       const g2 = ctx.createGain();
-      const t2 = now + 0.18;
+      const t2 = now + 0.25;
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(baseFreq * 1.1, t2);
-      osc2.frequency.linearRampToValueAtTime(baseFreq * 1.3, t2 + 0.05);
+      osc2.frequency.setValueAtTime(baseFreq * 1.05, t2);
+      osc2.frequency.linearRampToValueAtTime(baseFreq * 1.15, t2 + 0.07);
       g2.gain.setValueAtTime(0, t2);
-      g2.gain.linearRampToValueAtTime(0.1, t2 + 0.01);
-      g2.gain.linearRampToValueAtTime(0, t2 + 0.1);
+      g2.gain.linearRampToValueAtTime(0.05, t2 + 0.04);
+      g2.gain.linearRampToValueAtTime(0, t2 + 0.15);
       osc2.connect(g2).connect(master);
       osc2.start(t2);
-      osc2.stop(t2 + 0.12);
+      osc2.stop(t2 + 0.18);
     }
   }
 
