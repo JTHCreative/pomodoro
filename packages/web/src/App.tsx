@@ -223,6 +223,9 @@ export default function App() {
                 alt="signature"
                 style={{
                   height: '40px',
+                  filter: isDark ? 'none' : 'brightness(0)',
+                  opacity: isDark ? 0.9 : 0.6,
+                  transition: 'filter 0.3s, opacity 0.3s',
                 }}
               />
             </div>
