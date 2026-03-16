@@ -15,4 +15,15 @@ export const forestTheme: Theme = {
     ringTrack: '#E8F5E9',
     ringFill: '#A5D6A7',
   },
+  darkColors: {
+    background: '#0F1F0D',
+    surface: '#1A3318',
+    accent: '#5E9C60',
+    text: '#B5D8B3',
+    buttonPrimary: '#3D7A3F',
+    buttonSecondary: '#1E4D20',
+    timerText: '#D5E8D4',
+    ringTrack: '#1E4D20',
+    ringFill: '#5E9C60',
+  },
 };

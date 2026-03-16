@@ -1,7 +1,15 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-function FallingLeaves() {
+interface ForestSceneProps {
+  isDark: boolean;
+}
+
+const lightLeafColors = ['#A5D6A7', '#81C784', '#C8E6C9', '#B9D9A0'];
+const darkLeafColors = ['#3D7A3F', '#2E6630', '#4A8A4C', '#35713A'];
+
+function FallingLeaves({ isDark }: { isDark: boolean }) {
+  const colors = isDark ? darkLeafColors : lightLeafColors;
   const leaves = useMemo(
     () =>
       Array.from({ length: 14 }, (_, i) => ({
@@ -12,7 +20,7 @@ function FallingLeaves() {
         delay: Math.random() * 10,
         rotation: Math.random() * 360,
         drift: (Math.random() - 0.5) * 120,
-        color: ['#A5D6A7', '#81C784', '#C8E6C9', '#B9D9A0'][i % 4],
+        colorIndex: i % 4,
       })),
     []
   );
@@ -29,7 +37,7 @@ function FallingLeaves() {
             width: l.size,
             height: l.size * 0.7,
             borderRadius: '50% 0 50% 0',
-            backgroundColor: l.color,
+            backgroundColor: colors[l.colorIndex],
             opacity: 0,
           }}
           animate={{
@@ -50,7 +58,10 @@ function FallingLeaves() {
   );
 }
 
-function Fireflies() {
+function Fireflies({ isDark }: { isDark: boolean }) {
+  const glowColor = isDark ? '#A8D8A0' : '#E8F5E9';
+  const shadowAlpha = isDark ? 0.6 : 0.5;
+
   const flies = useMemo(
     () =>
       Array.from({ length: 12 }, (_, i) => ({
@@ -76,8 +87,8 @@ function Fireflies() {
             width: f.size,
             height: f.size,
             borderRadius: '50%',
-            backgroundColor: '#E8F5E9',
-            boxShadow: `0 0 ${f.size * 2}px ${f.size}px rgba(232,245,233,0.5)`,
+            backgroundColor: glowColor,
+            boxShadow: `0 0 ${f.size * 2}px ${f.size}px rgba(168,216,160,${shadowAlpha})`,
           }}
           animate={{
             opacity: [0, 0.9, 0],
@@ -97,10 +108,12 @@ function Fireflies() {
   );
 }
 
-function TreeSilhouettes() {
+function TreeSilhouettes({ isDark }: { isDark: boolean }) {
+  const treeAlpha = isDark ? 0.3 : 0.15;
+  const treeAlpha2 = isDark ? 0.15 : 0.05;
+
   return (
     <>
-      {/* Left tree group */}
       <motion.div
         style={{
           position: 'absolute',
@@ -108,14 +121,12 @@ function TreeSilhouettes() {
           left: '5%',
           width: '80px',
           height: '200px',
-          background:
-            'linear-gradient(to top, rgba(51,105,30,0.15), rgba(51,105,30,0.05), transparent)',
+          background: `linear-gradient(to top, rgba(51,105,30,${treeAlpha}), rgba(51,105,30,${treeAlpha2}), transparent)`,
           borderRadius: '40% 40% 0 0',
         }}
         animate={{ x: [0, 3, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Right tree group */}
       <motion.div
         style={{
           position: 'absolute',
@@ -123,14 +134,12 @@ function TreeSilhouettes() {
           right: '8%',
           width: '100px',
           height: '240px',
-          background:
-            'linear-gradient(to top, rgba(51,105,30,0.12), rgba(51,105,30,0.04), transparent)',
+          background: `linear-gradient(to top, rgba(51,105,30,${treeAlpha * 0.8}), rgba(51,105,30,${treeAlpha2 * 0.8}), transparent)`,
           borderRadius: '40% 40% 0 0',
         }}
         animate={{ x: [0, -4, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
-      {/* Center small tree */}
       <motion.div
         style={{
           position: 'absolute',
@@ -138,8 +147,7 @@ function TreeSilhouettes() {
           left: '45%',
           width: '60px',
           height: '160px',
-          background:
-            'linear-gradient(to top, rgba(51,105,30,0.1), rgba(51,105,30,0.03), transparent)',
+          background: `linear-gradient(to top, rgba(51,105,30,${treeAlpha * 0.65}), rgba(51,105,30,${treeAlpha2 * 0.6}), transparent)`,
           borderRadius: '40% 40% 0 0',
         }}
         animate={{ x: [0, 2, 0] }}
@@ -149,7 +157,7 @@ function TreeSilhouettes() {
   );
 }
 
-export default function ForestScene() {
+export default function ForestScene({ isDark }: ForestSceneProps) {
   return (
     <div
       style={{
@@ -159,9 +167,9 @@ export default function ForestScene() {
         pointerEvents: 'none',
       }}
     >
-      <TreeSilhouettes />
-      <FallingLeaves />
-      <Fireflies />
+      <TreeSilhouettes isDark={isDark} />
+      <FallingLeaves isDark={isDark} />
+      <Fireflies isDark={isDark} />
     </div>
   );
 }

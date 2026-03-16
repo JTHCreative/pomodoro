@@ -1,7 +1,15 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-function Stars() {
+interface SkySceneProps {
+  isDark: boolean;
+}
+
+function Stars({ isDark }: { isDark: boolean }) {
+  const starColor = isDark ? '#FFFFFF' : '#FFFFFF';
+  const baseOpacity = isDark ? 0.4 : 0.2;
+  const peakOpacity = isDark ? 1.0 : 0.9;
+
   const stars = useMemo(
     () =>
       Array.from({ length: 40 }, (_, i) => ({
@@ -27,9 +35,10 @@ function Stars() {
             width: s.size,
             height: s.size,
             borderRadius: '50%',
-            backgroundColor: '#FFFFFF',
+            backgroundColor: starColor,
+            boxShadow: isDark ? `0 0 ${s.size * 2}px ${s.size * 0.5}px rgba(255,255,255,0.3)` : 'none',
           }}
-          animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.8, 1.1, 0.8] }}
+          animate={{ opacity: [baseOpacity, peakOpacity, baseOpacity], scale: [0.8, 1.1, 0.8] }}
           transition={{
             duration: s.duration,
             delay: s.delay,
@@ -42,7 +51,13 @@ function Stars() {
   );
 }
 
-function Moon() {
+function Moon({ isDark }: { isDark: boolean }) {
+  const moonBg = isDark
+    ? 'radial-gradient(circle at 35% 35%, #E8E0F0 0%, #C8A8E0 50%, #A070C0 100%)'
+    : 'radial-gradient(circle at 35% 35%, #F3E5F5 0%, #E1BEE7 50%, #CE93D8 100%)';
+  const glowAlpha = isDark ? 0.4 : 0.25;
+  const glowAlpha2 = isDark ? 0.2 : 0.1;
+
   return (
     <motion.div
       style={{
@@ -52,21 +67,14 @@ function Moon() {
         width: '70px',
         height: '70px',
         borderRadius: '50%',
-        background:
-          'radial-gradient(circle at 35% 35%, #F3E5F5 0%, #E1BEE7 50%, #CE93D8 100%)',
-        boxShadow: '0 0 40px 15px rgba(206,147,216,0.25), 0 0 80px 30px rgba(206,147,216,0.1)',
+        background: moonBg,
+        boxShadow: `0 0 40px 15px rgba(206,147,216,${glowAlpha}), 0 0 80px 30px rgba(206,147,216,${glowAlpha2})`,
       }}
       animate={{
         y: [0, -8, 0],
-        boxShadow: [
-          '0 0 40px 15px rgba(206,147,216,0.25), 0 0 80px 30px rgba(206,147,216,0.1)',
-          '0 0 50px 20px rgba(206,147,216,0.35), 0 0 100px 40px rgba(206,147,216,0.15)',
-          '0 0 40px 15px rgba(206,147,216,0.25), 0 0 80px 30px rgba(206,147,216,0.1)',
-        ],
       }}
       transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
     >
-      {/* Inner crescent shadow */}
       <div
         style={{
           position: 'absolute',
@@ -83,7 +91,10 @@ function Moon() {
   );
 }
 
-function ShootingStar() {
+function ShootingStar({ isDark }: { isDark: boolean }) {
+  const color = isDark ? '#FFFFFF' : '#FFFFFF';
+  const glowAlpha = isDark ? 0.8 : 0.6;
+
   return (
     <motion.div
       style={{
@@ -93,8 +104,8 @@ function ShootingStar() {
         width: '3px',
         height: '3px',
         borderRadius: '50%',
-        backgroundColor: '#FFFFFF',
-        boxShadow: '0 0 6px 2px rgba(255,255,255,0.6)',
+        backgroundColor: color,
+        boxShadow: `0 0 6px 2px rgba(255,255,255,${glowAlpha})`,
       }}
       animate={{
         x: [0, window.innerWidth * 0.7],
@@ -109,7 +120,6 @@ function ShootingStar() {
         ease: 'easeOut',
       }}
     >
-      {/* Tail */}
       <div
         style={{
           position: 'absolute',
@@ -117,7 +127,7 @@ function ShootingStar() {
           right: '100%',
           width: '50px',
           height: '1.5px',
-          background: 'linear-gradient(to left, rgba(255,255,255,0.7), transparent)',
+          background: `linear-gradient(to left, rgba(255,255,255,${isDark ? 0.9 : 0.7}), transparent)`,
           transformOrigin: 'right center',
           transform: 'translateY(-50%)',
         }}
@@ -126,7 +136,9 @@ function ShootingStar() {
   );
 }
 
-function CloudWisps() {
+function CloudWisps({ isDark }: { isDark: boolean }) {
+  const color = isDark ? 'rgba(139,111,192,0.1)' : 'rgba(255,255,255,0.06)';
+
   const wisps = useMemo(
     () =>
       Array.from({ length: 4 }, (_, i) => ({
@@ -151,7 +163,7 @@ function CloudWisps() {
             width: w.width,
             height: 8,
             borderRadius: '10px',
-            background: 'rgba(255,255,255,0.06)',
+            background: color,
           }}
           animate={{ x: [0, 40, 0], opacity: [0.04, 0.1, 0.04] }}
           transition={{
@@ -165,7 +177,7 @@ function CloudWisps() {
   );
 }
 
-export default function SkyScene() {
+export default function SkyScene({ isDark }: SkySceneProps) {
   return (
     <div
       style={{
@@ -175,10 +187,10 @@ export default function SkyScene() {
         pointerEvents: 'none',
       }}
     >
-      <CloudWisps />
-      <Stars />
-      <Moon />
-      <ShootingStar />
+      <CloudWisps isDark={isDark} />
+      <Stars isDark={isDark} />
+      <Moon isDark={isDark} />
+      <ShootingStar isDark={isDark} />
     </div>
   );
 }

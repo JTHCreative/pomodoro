@@ -15,4 +15,15 @@ export const oceanTheme: Theme = {
     ringTrack: '#E0F2FE',
     ringFill: '#7EC8E3',
   },
+  darkColors: {
+    background: '#0D2137',
+    surface: '#132E4A',
+    accent: '#4A9EC4',
+    text: '#A8D8EA',
+    buttonPrimary: '#2E7DA8',
+    buttonSecondary: '#1A3F5C',
+    timerText: '#C8E6F5',
+    ringTrack: '#1A3F5C',
+    ringFill: '#4A9EC4',
+  },
 };

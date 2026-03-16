@@ -15,4 +15,15 @@ export const skyTheme: Theme = {
     ringTrack: '#E8E4F0',
     ringFill: '#B39DDB',
   },
+  darkColors: {
+    background: '#14102A',
+    surface: '#1E1940',
+    accent: '#8B6FC0',
+    text: '#C8BDE8',
+    buttonPrimary: '#7B5EA7',
+    buttonSecondary: '#2A2250',
+    timerText: '#D6D2E8',
+    ringTrack: '#2A2250',
+    ringFill: '#8B6FC0',
+  },
 };

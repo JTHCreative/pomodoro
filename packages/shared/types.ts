@@ -15,6 +15,7 @@ export interface Theme {
   id: 'ocean' | 'forest' | 'sky';
   icon: string;
   colors: ThemeColors;
+  darkColors: ThemeColors;
 }
 
 export interface TimerState {

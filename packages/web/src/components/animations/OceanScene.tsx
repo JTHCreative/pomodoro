@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-function Bubbles() {
+interface OceanSceneProps {
+  isDark: boolean;
+}
+
+function Bubbles({ isDark }: { isDark: boolean }) {
   const bubbles = useMemo(
     () =>
       Array.from({ length: 18 }, (_, i) => ({
@@ -15,6 +19,9 @@ function Bubbles() {
     []
   );
 
+  const bubbleColor = isDark ? 'rgba(74,158,196,0.35)' : 'rgba(255,255,255,0.5)';
+  const borderColor = isDark ? 'rgba(74,158,196,0.2)' : 'rgba(255,255,255,0.3)';
+
   return (
     <>
       {bubbles.map((b) => (
@@ -27,8 +34,8 @@ function Bubbles() {
             width: b.size,
             height: b.size,
             borderRadius: '50%',
-            backgroundColor: 'rgba(255,255,255,0.5)',
-            border: '1px solid rgba(255,255,255,0.3)',
+            backgroundColor: bubbleColor,
+            border: `1px solid ${borderColor}`,
           }}
           animate={{
             y: [0, -window.innerHeight - 40],
@@ -47,10 +54,13 @@ function Bubbles() {
   );
 }
 
-function Waves() {
+function Waves({ isDark }: { isDark: boolean }) {
+  const w1 = isDark ? 'rgba(46,125,168,0.3)' : 'rgba(126,200,227,0.35)';
+  const w2 = isDark ? 'rgba(74,158,196,0.25)' : 'rgba(137,207,240,0.4)';
+  const w3 = isDark ? 'rgba(26,63,92,0.4)' : 'rgba(182,227,244,0.5)';
+
   return (
     <>
-      {/* Wave 1 — back */}
       <motion.div
         style={{
           position: 'absolute',
@@ -58,14 +68,12 @@ function Waves() {
           left: '-5%',
           width: '110%',
           height: '120px',
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(126,200,227,0.35) 0%, transparent 70%)',
+          background: `radial-gradient(ellipse at 50% 0%, ${w1} 0%, transparent 70%)`,
           borderRadius: '50% 50% 0 0',
         }}
         animate={{ x: [0, 30, 0], y: [0, -8, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Wave 2 — mid */}
       <motion.div
         style={{
           position: 'absolute',
@@ -73,14 +81,12 @@ function Waves() {
           left: '-8%',
           width: '116%',
           height: '90px',
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(137,207,240,0.4) 0%, transparent 70%)',
+          background: `radial-gradient(ellipse at 50% 0%, ${w2} 0%, transparent 70%)`,
           borderRadius: '50% 50% 0 0',
         }}
         animate={{ x: [0, -25, 0], y: [0, -5, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
       />
-      {/* Wave 3 — front */}
       <motion.div
         style={{
           position: 'absolute',
@@ -88,8 +94,7 @@ function Waves() {
           left: '-3%',
           width: '106%',
           height: '60px',
-          background:
-            'radial-gradient(ellipse at 50% 0%, rgba(182,227,244,0.5) 0%, transparent 70%)',
+          background: `radial-gradient(ellipse at 50% 0%, ${w3} 0%, transparent 70%)`,
           borderRadius: '50% 50% 0 0',
         }}
         animate={{ x: [0, 20, 0], y: [0, -3, 0] }}
@@ -99,7 +104,9 @@ function Waves() {
   );
 }
 
-function Shimmer() {
+function Shimmer({ isDark }: { isDark: boolean }) {
+  const color = isDark ? 'rgba(74,158,196,0.3)' : 'rgba(255,255,255,0.4)';
+
   return (
     <motion.div
       style={{
@@ -108,8 +115,7 @@ function Shimmer() {
         left: '10%',
         width: '80%',
         height: '2px',
-        background:
-          'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+        background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
         borderRadius: '2px',
       }}
       animate={{ opacity: [0, 0.6, 0], x: ['-20%', '20%'] }}
@@ -118,7 +124,7 @@ function Shimmer() {
   );
 }
 
-export default function OceanScene() {
+export default function OceanScene({ isDark }: OceanSceneProps) {
   return (
     <div
       style={{
@@ -128,9 +134,9 @@ export default function OceanScene() {
         pointerEvents: 'none',
       }}
     >
-      <Shimmer />
-      <Bubbles />
-      <Waves />
+      <Shimmer isDark={isDark} />
+      <Bubbles isDark={isDark} />
+      <Waves isDark={isDark} />
     </div>
   );
 }

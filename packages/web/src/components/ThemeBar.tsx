@@ -5,10 +5,11 @@ import { Theme } from '@pomodoro/shared';
 interface ThemeBarProps {
   themes: Theme[];
   activeThemeId: string;
+  isDark: boolean;
   onSelectTheme: (id: Theme['id']) => void;
 }
 
-export default function ThemeBar({ themes, activeThemeId, onSelectTheme }: ThemeBarProps) {
+export default function ThemeBar({ themes, activeThemeId, isDark, onSelectTheme }: ThemeBarProps) {
   return (
     <div
       style={{
@@ -16,13 +17,14 @@ export default function ThemeBar({ themes, activeThemeId, onSelectTheme }: Theme
         gap: '12px',
         padding: '10px 20px',
         borderRadius: '50px',
-        backgroundColor: 'rgba(255, 255, 255, 0.35)',
+        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.35)',
         backdropFilter: 'blur(10px)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
       }}
     >
       {themes.map((theme) => {
         const isActive = theme.id === activeThemeId;
+        const c = isDark ? theme.darkColors : theme.colors;
         return (
           <motion.button
             key={theme.id}
@@ -36,14 +38,14 @@ export default function ThemeBar({ themes, activeThemeId, onSelectTheme }: Theme
               padding: '8px 18px',
               borderRadius: '30px',
               border: isActive
-                ? `2px solid ${theme.colors.accent}`
+                ? `2px solid ${c.accent}`
                 : '2px solid transparent',
-              backgroundColor: isActive ? theme.colors.surface : 'transparent',
+              backgroundColor: isActive ? c.surface : 'transparent',
               cursor: 'pointer',
               fontSize: '0.9rem',
               fontWeight: 600,
               fontFamily: "'Inter', sans-serif",
-              color: theme.colors.text,
+              color: c.text,
               transition: 'background-color 0.3s, border-color 0.3s',
             }}
           >

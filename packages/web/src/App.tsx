@@ -11,7 +11,7 @@ import { playAmbience, stopAmbience } from './audio/ambience';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
 
-const sceneMap: Record<Theme['id'], React.ComponentType> = {
+const sceneMap: Record<Theme['id'], React.ComponentType<{ isDark: boolean }>> = {
   ocean: OceanScene,
   forest: ForestScene,
   sky: SkyScene,
@@ -20,9 +20,12 @@ const sceneMap: Record<Theme['id'], React.ComponentType> = {
 export default function App() {
   const [activeThemeId, setActiveThemeId] = useState<Theme['id']>('ocean');
   const [audioOn, setAudioOn] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const timer = useTimer();
 
   const activeTheme = themes.find((t) => t.id === activeThemeId)!;
+  const colors = isDark ? activeTheme.darkColors : activeTheme.colors;
   const Scene = sceneMap[activeThemeId];
 
   const handleSelectTheme = useCallback((id: Theme['id']) => {
@@ -42,7 +45,7 @@ export default function App() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={activeThemeId}
+        key={`${activeThemeId}-${isDark}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -51,7 +54,7 @@ export default function App() {
           position: 'relative',
           width: '100%',
           height: '100vh',
-          backgroundColor: activeTheme.colors.background,
+          backgroundColor: colors.background,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -61,7 +64,119 @@ export default function App() {
         }}
       >
         {/* Animated background */}
-        <Scene />
+        <Scene isDark={isDark} />
+
+        {/* Settings gear — top right */}
+        <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 30 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSettingsOpen((prev) => !prev)}
+            style={{
+              background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(8px)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 42,
+              height: 42,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.2rem',
+              color: colors.text,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            }}
+            title="Settings"
+          >
+            ⚙️
+          </motion.button>
+
+          {/* Settings dropdown */}
+          <AnimatePresence>
+            {settingsOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: 'absolute',
+                  top: 50,
+                  right: 0,
+                  background: isDark ? 'rgba(20,20,40,0.85)' : 'rgba(255,255,255,0.85)',
+                  backdropFilter: 'blur(12px)',
+                  borderRadius: '14px',
+                  padding: '16px 20px',
+                  minWidth: '180px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: colors.text,
+                    opacity: 0.5,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  Settings
+                </span>
+
+                {/* Dark mode toggle */}
+                <button
+                  onClick={() => setIsDark((prev) => !prev)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    padding: '8px 0',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    color: colors.text,
+                  }}
+                >
+                  <span>{isDark ? '🌙 Dark Mode' : '☀️ Light Mode'}</span>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 22,
+                      borderRadius: 11,
+                      backgroundColor: isDark ? colors.accent : 'rgba(0,0,0,0.15)',
+                      position: 'relative',
+                      transition: 'background-color 0.3s',
+                    }}
+                  >
+                    <motion.div
+                      animate={{ x: isDark ? 20 : 2 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        backgroundColor: '#fff',
+                        position: 'absolute',
+                        top: 2,
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                      }}
+                    />
+                  </div>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Content layer */}
         <div
@@ -81,7 +196,7 @@ export default function App() {
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '2.4rem',
                 fontWeight: 700,
-                color: activeTheme.colors.text,
+                color: colors.text,
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 opacity: 0.85,
@@ -95,7 +210,7 @@ export default function App() {
                   fontFamily: "'Inter', sans-serif",
                   fontSize: '0.85rem',
                   fontWeight: 400,
-                  color: activeTheme.colors.text,
+                  color: colors.text,
                   opacity: 0.5,
                   position: 'relative',
                   top: '-12px',
@@ -117,6 +232,7 @@ export default function App() {
           <ThemeBar
             themes={themes}
             activeThemeId={activeThemeId}
+            isDark={isDark}
             onSelectTheme={handleSelectTheme}
           />
 
@@ -125,7 +241,7 @@ export default function App() {
             minutes={timer.minutes}
             seconds={timer.seconds}
             progress={timer.progress}
-            colors={activeTheme.colors}
+            colors={colors}
           />
 
           {/* Start / Pause / Reset */}
@@ -134,7 +250,7 @@ export default function App() {
             onStart={timer.start}
             onPause={timer.pause}
             onReset={timer.reset}
-            colors={activeTheme.colors}
+            colors={colors}
           />
 
           {/* Sound toggle */}
@@ -143,7 +259,7 @@ export default function App() {
             whileTap={{ scale: 0.95 }}
             onClick={() => setAudioOn((prev) => !prev)}
             style={{
-              background: 'rgba(255,255,255,0.25)',
+              background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.25)',
               backdropFilter: 'blur(8px)',
               border: 'none',
               borderRadius: '50%',
@@ -154,7 +270,7 @@ export default function App() {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '1.3rem',
-              color: activeTheme.colors.text,
+              color: colors.text,
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
             }}
             title={audioOn ? 'Mute ambient sound' : 'Play ambient sound'}
