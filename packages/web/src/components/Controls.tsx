@@ -7,6 +7,7 @@ interface ControlsProps {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  onSkip: () => void;
   colors: ThemeColors;
 }
 
@@ -22,9 +23,21 @@ const buttonBase: React.CSSProperties = {
   boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
 };
 
-export default function Controls({ isRunning, onStart, onPause, onReset, colors }: ControlsProps) {
+const smallButton: React.CSSProperties = {
+  padding: '10px 20px',
+  borderRadius: '50px',
+  border: 'none',
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  fontFamily: "'Inter', sans-serif",
+  cursor: 'pointer',
+  letterSpacing: '0.03em',
+  boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+};
+
+export default function Controls({ isRunning, onStart, onPause, onReset, onSkip, colors }: ControlsProps) {
   return (
-    <div style={{ display: 'flex', gap: '16px' }}>
+    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -49,6 +62,20 @@ export default function Controls({ isRunning, onStart, onPause, onReset, colors 
         }}
       >
         ↺  Reset
+      </motion.button>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onSkip}
+        style={{
+          ...smallButton,
+          backgroundColor: colors.buttonSecondary,
+          color: colors.text,
+        }}
+        title="Skip to next phase"
+      >
+        ⏭  Skip
       </motion.button>
     </div>
   );
