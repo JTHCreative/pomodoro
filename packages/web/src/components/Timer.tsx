@@ -17,6 +17,8 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 export default function Timer({ minutes, seconds, progress, colors }: TimerProps) {
   const offset = CIRCUMFERENCE * (1 - progress);
   const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const totalSeconds = minutes * 60 + seconds;
+  const isLastMinute = totalSeconds <= 60 && totalSeconds > 0;
 
   return (
     <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
@@ -61,22 +63,39 @@ export default function Timer({ minutes, seconds, progress, colors }: TimerProps
           justifyContent: 'center',
         }}
       >
-        <motion.span
-          key={timeString}
-          initial={{ scale: 1.05, opacity: 0.7 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.2 }}
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '4rem',
-            fontWeight: 600,
-            color: colors.timerText,
-            letterSpacing: '0.05em',
-            userSelect: 'none',
-          }}
-        >
-          {timeString}
-        </motion.span>
+        {isLastMinute ? (
+          /* Last 60 seconds: pulse animation on each tick */
+          <motion.span
+            key={timeString}
+            initial={{ scale: 1.08, opacity: 0.6 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '4rem',
+              fontWeight: 600,
+              color: colors.timerText,
+              letterSpacing: '0.05em',
+              userSelect: 'none',
+            }}
+          >
+            {timeString}
+          </motion.span>
+        ) : (
+          /* Normal countdown: static text, no pulse */
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: '4rem',
+              fontWeight: 600,
+              color: colors.timerText,
+              letterSpacing: '0.05em',
+              userSelect: 'none',
+            }}
+          >
+            {timeString}
+          </span>
+        )}
       </div>
     </div>
   );
