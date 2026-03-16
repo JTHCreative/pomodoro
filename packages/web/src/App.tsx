@@ -8,7 +8,7 @@ import OceanScene from './components/animations/OceanScene';
 import ForestScene from './components/animations/ForestScene';
 import SkyScene from './components/animations/SkyScene';
 import { playAmbience, stopAmbience } from './audio/ambience';
-import { GearIcon, SunIcon, MoonIcon } from './components/Icons';
+import { GearIcon, SunIcon, MoonIcon, VolumeOnIcon, VolumeOffIcon } from './components/Icons';
 
 const themes: Theme[] = [oceanTheme, forestTheme, skyTheme];
 
@@ -303,7 +303,7 @@ export default function App() {
             }}
             title={audioOn ? 'Mute ambient sound' : 'Play ambient sound'}
           >
-            {audioOn ? '🔊' : '🔇'}
+            {audioOn ? <VolumeOnIcon size={20} color={colors.text} /> : <VolumeOffIcon size={20} color={colors.text} />}
           </motion.button>
         </div>
       </motion.div>
