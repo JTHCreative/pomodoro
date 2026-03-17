@@ -5,12 +5,23 @@ let activeNodes: AudioNode[] = [];
 let activeIntervals: ReturnType<typeof setInterval>[] = [];
 let currentTheme: ThemeId | null = null;
 let isPlaying = false;
+let masterVolume: GainNode | null = null;
+let currentVolume = 1;
 
 function getContext(): AudioContext {
   if (!audioCtx) {
     audioCtx = new AudioContext();
   }
   return audioCtx;
+}
+
+function getMasterVolume(ctx: AudioContext): GainNode {
+  if (!masterVolume) {
+    masterVolume = ctx.createGain();
+    masterVolume.gain.value = currentVolume;
+    masterVolume.connect(ctx.destination);
+  }
+  return masterVolume;
 }
 
 function cleanup() {
@@ -41,7 +52,7 @@ function createNoiseBuffer(ctx: AudioContext, seconds: number): AudioBuffer {
 function startOcean(ctx: AudioContext) {
   const master = ctx.createGain();
   master.gain.value = 0.3;
-  master.connect(ctx.destination);
+  master.connect(getMasterVolume(ctx));
   activeNodes.push(master);
 
   // Wave layer 1
@@ -98,7 +109,7 @@ function createWaveLayer(ctx: AudioContext, dest: AudioNode, vol: number, period
 function startForest(ctx: AudioContext) {
   const master = ctx.createGain();
   master.gain.value = 0.35;
-  master.connect(ctx.destination);
+  master.connect(getMasterVolume(ctx));
   activeNodes.push(master);
 
   // Ambient rustling
@@ -170,7 +181,7 @@ function startForest(ctx: AudioContext) {
 function startSky(ctx: AudioContext) {
   const master = ctx.createGain();
   master.gain.value = 0.25;
-  master.connect(ctx.destination);
+  master.connect(getMasterVolume(ctx));
   activeNodes.push(master);
 
   // Soft night air
@@ -362,6 +373,17 @@ export function stopAmbience() {
   currentTheme = null;
   cleanup();
   cleanupCountdown();
+  if (masterVolume) {
+    try { masterVolume.disconnect(); } catch {}
+    masterVolume = null;
+  }
+}
+
+export function setAmbienceVolume(vol: number) {
+  currentVolume = vol;
+  if (masterVolume) {
+    masterVolume.gain.setValueAtTime(vol, masterVolume.context.currentTime);
+  }
 }
 
 export function isAmbiencePlaying(): boolean {
